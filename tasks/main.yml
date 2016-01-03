@@ -1,0 +1,50 @@
+---
+- name: Install PIP
+  apt: package=python-pip state=present
+  sudo: yes
+
+- name: Install PyMongo
+  pip: name=pymongo state=present
+  sudo: yes
+
+- name: Add APT Key
+  apt_key: keyserver=keyserver.ubuntu.com id=EA312927 state=present
+  sudo: yes
+
+- name: Add APT Repository
+  apt_repository:
+    repo: "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/stable multiverse"
+    state: present
+  sudo: yes
+
+- name: Create Configuration File
+  copy: src=mongo.conf dest=/etc/mongod.conf mode=0644
+  sudo: yes
+  notify: Restart MongoDB
+
+- name: Install
+  apt: package=mongodb-org state=present
+  sudo: yes
+  register: mongodb_install
+
+- name: Disable Transparent Huge Pages
+  lineinfile:
+    dest: /etc/init/mongod.conf
+    line: "{{ item }}"
+    insertafter: pre-start script
+    state: present
+  with_items:
+    - "  if test -f /sys/kernel/mm/transparent_hugepage/khugepaged/defrag; then echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag; fi"
+    - "  if test -f /sys/kernel/mm/transparent_hugepage/defrag; then echo never > /sys/kernel/mm/transparent_hugepage/defrag; fi"
+    - "  if test -f /sys/kernel/mm/transparent_hugepage/enabled; then echo never > /sys/kernel/mm/transparent_hugepage/enabled; fi"
+  sudo: yes
+  notify: Restart MongoDB
+
+- name: Lockdown MongoDB
+  mongodb_user:
+    name:     "{{ mongodb_admin }}"
+    password: "{{ mongodb_pass }}"
+    database: admin
+    state:    present
+    roles:    root,backup,restore
+  when: mongodb_install | changed
