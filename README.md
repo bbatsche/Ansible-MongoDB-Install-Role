@@ -1,5 +1,5 @@
-MongoDB Install
-=========
+Ansible Install MongoDB Role
+============================
 
 [![Build Status](https://travis-ci.org/bbatsche/Ansible-MongoDB-Install-Role.svg?branch=master)](https://travis-ci.org/bbatsche/Ansible-MongoDB-Install-Role)
 
@@ -8,15 +8,17 @@ This Ansible role will install and lockdown a basic setup of MongoDB v3.2+
 Role Variables
 --------------
 
-- `mongodb_admin` &mdash; Admin username to be created, if necessary. Default: "vagrant"
-- `mongodb_pass` &mdash; Password for admin user, if created. Default: "vagrant"
+- `mongodb_admin` &mdash; Admin username to be created. Default: "vagrant"
+- `mongodb_pass` &mdash; Password for admin user. Default: "vagrant"
 
 Example Playbook
 ----------------
 
-    - hosts: servers
-      roles:
-         - { role: bbatsche.MongoDB-Install }
+```yml
+- hosts: servers
+  roles:
+  - { role: bbatsche.MongoDB-Install }
+```
 
 License
 -------
