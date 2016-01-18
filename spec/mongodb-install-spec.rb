@@ -48,4 +48,3 @@ end
 describe file('/sys/kernel/mm/transparent_hugepage/defrag') do
   its(:content) { should eq "always madvise [never]\n" }
 end
-# transparent huge pages should be disabled
