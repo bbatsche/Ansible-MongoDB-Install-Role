@@ -2,6 +2,7 @@ Ansible Install MongoDB Role
 ============================
 
 [![Build Status](https://travis-ci.org/bbatsche/Ansible-MongoDB-Install-Role.svg?branch=master)](https://travis-ci.org/bbatsche/Ansible-MongoDB-Install-Role)
+[![Ansible Galaxy](https://img.shields.io/ansible/role/6787.svg)](https://galaxy.ansible.com/detail#/role/6787)
 
 This Ansible role will install and lockdown a basic setup of MongoDB v3.2+
 
