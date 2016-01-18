@@ -1,3 +1,4 @@
 ---
-mongodb_admin: vagrant
-mongodb_pass:  vagrant
+mongodb_admin:   vagrant
+mongodb_pass:    vagrant
+mongodb_version: "3.2"

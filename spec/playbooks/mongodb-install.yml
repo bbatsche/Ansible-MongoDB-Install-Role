@@ -2,6 +2,27 @@
 - hosts: all
   vars_files:
     - ../../defaults/main.yml
+    - ../../vars/main.yml
+  pre_tasks:
+    - name: Uninstall previous MongoDB
+      apt: package={{ item }} state=absent
+      become: yes
+      with_items:
+        - mongodb-org
+        - mongodb-org-server
+        - mongodb-org-mongos
+        - mongodb-org-shell
+        - mongodb-org-tools
+    - name: Remove previous APT repository
+      apt_repository:
+        repo: "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/{{ item.key }} multiverse"
+        state: absent
+      become: yes
+      with_dict: "{{ mongodb_keys }}"
+    - name: Remove previous APT keys
+      apt_key: keyserver=keyserver.ubuntu.com id={{ item.value }} state=absent
+      become: yes
+      with_dict: "{{ mongodb_keys }}"
   tasks:
     - include: ../../tasks/main.yml
   handlers:

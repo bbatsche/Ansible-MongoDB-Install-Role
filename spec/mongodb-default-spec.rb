@@ -2,7 +2,7 @@ require_relative 'spec_helper'
 
 RSpec.configure do |config|
   config.before :suite do
-    SpecHelper.instance.provision('playbooks/mongodb-install.yml')
+    SpecHelper.instance.provision 'playbooks/mongodb-install.yml'
   end
 end
 

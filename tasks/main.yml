@@ -8,12 +8,12 @@
   become: yes
 
 - name: Add APT Key
-  apt_key: keyserver=keyserver.ubuntu.com id=EA312927 state=present
+  apt_key: keyserver=keyserver.ubuntu.com id={{ mongodb_keys[mongodb_version] }} state=present
   become: yes
 
 - name: Add APT Repository
   apt_repository:
-    repo: "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/stable multiverse"
+    repo: "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/{{ mongodb_version }} multiverse"
     state: present
   become: yes
 
