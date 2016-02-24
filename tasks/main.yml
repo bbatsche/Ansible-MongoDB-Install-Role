@@ -18,7 +18,7 @@
   become: yes
 
 - name: Create Configuration File
-  copy: src=mongo.conf dest=/etc/mongod.conf mode=0644
+  template: src=mongo.conf.j2 dest=/etc/mongod.conf mode=0644
   become: yes
   notify: Restart MongoDB
 

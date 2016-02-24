@@ -1,12 +1,12 @@
 systemLog:
-  path: /var/log/mongodb/mongod.log
+  path: {{ mongodb_log_path }}/mongod.log
   destination: file
 net:
-  bindIp: 127.0.0.1
+  bindIp: {{ mongodb_bind_ip }}
 security:
   authorization: enabled
 storage:
-  dbPath: /var/lib/mongodb
+  dbPath: {{ mongodb_db_path }}
   journal:
     enabled: true
   engine: wiredTiger
