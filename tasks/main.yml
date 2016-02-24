@@ -47,4 +47,4 @@
     database: admin
     state:    present
     roles:    root,backup,restore
-  when: mongodb_install | changed
+  when: mongodb_authorization == 'enabled' and mongodb_install | changed

@@ -4,7 +4,7 @@ systemLog:
 net:
   bindIp: {{ mongodb_bind_ip }}
 security:
-  authorization: enabled
+  authorization: {{ mongodb_authorization }}
 storage:
   dbPath: {{ mongodb_db_path }}
   journal:
