@@ -12,6 +12,10 @@ Role Variables
 - `mongodb_admin` &mdash; Admin username to be created. Default: "vagrant"
 - `mongodb_pass` &mdash; Password for admin user. Default: "vagrant"
 - `mongodb_version` &mdash; Version of MongoDB to install. **Must** be a string value, either "3.0" or "3.2". Default: "3.2"
+- `mongodb_log_path` &mdash; Location for MongoDB logs. Default: "/var/log/mongodb"
+- `mongodb_db_path` &mdash; Location for MongoDB data files. Default: "/var/lib/mongodb"
+- `mongodb_bind_ip` &mdash; IP Address for MongoDB to listen for connections. Default: "127.0.0.1"
+- `mongodb_authorization` &mdash; Whether to MongoDB will require authentication to connect. Values should be either "enabled" or "disabled". Default: "enabled". Setting this to "disabled" is **strongly** discouraged.
 
 Example Playbook
 ----------------
