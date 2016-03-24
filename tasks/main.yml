@@ -42,8 +42,8 @@
 
 - name: Lockdown MongoDB
   mongodb_user:
-    name:     "{{ mongodb_admin }}"
-    password: "{{ mongodb_pass }}"
+    name:     "{{ db_admin }}"
+    password: "{{ db_pass }}"
     database: admin
     state:    present
     roles:    root,backup,restore

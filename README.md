@@ -9,8 +9,8 @@ This Ansible role will install and lockdown a basic setup of MongoDB v3.0+
 Role Variables
 --------------
 
-- `mongodb_admin` &mdash; Admin username to be created. Default: "vagrant"
-- `mongodb_pass` &mdash; Password for admin user. Default: "vagrant"
+- `db_admin` &mdash; Admin username to be created. Default: "vagrant"
+- `db_pass` &mdash; Password for admin user. Default: "vagrant"
 - `mongodb_version` &mdash; Version of MongoDB to install. **Must** be a string value, either "3.0" or "3.2". Default: "3.2"
 - `mongodb_log_path` &mdash; Location for MongoDB logs. Default: "/var/log/mongodb"
 - `mongodb_db_path` &mdash; Location for MongoDB data files. Default: "/var/lib/mongodb"

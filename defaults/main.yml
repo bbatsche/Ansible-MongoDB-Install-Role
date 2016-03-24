@@ -1,10 +1,11 @@
 ---
-mongodb_admin:   vagrant
-mongodb_pass:    vagrant
+db_admin: vagrant
+db_pass:  vagrant
+
 mongodb_version: "3.2"
 
 mongodb_log_path: /var/log/mongodb
-mongodb_db_path: /var/lib/mongodb
+mongodb_db_path:  /var/lib/mongodb
 
 mongodb_bind_ip: 127.0.0.1
 
