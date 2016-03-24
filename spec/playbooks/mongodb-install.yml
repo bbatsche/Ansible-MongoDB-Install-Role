@@ -24,6 +24,9 @@
     apt_key: keyserver=keyserver.ubuntu.com id={{ item.value }} state=absent
     become: true
     with_dict: "{{ mongodb_keys }}"
+  - name: Delete previous MongoDB data
+    file: path={{ mongodb_db_path }} state=absent
+    become: true
   tasks:
   - include: "../../tasks/main.yml"
   handlers:
