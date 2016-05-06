@@ -4,7 +4,7 @@
   become: yes
 
 - name: Install PyMongo
-  pip: name=pymongo state=present
+  pip: name=pymongo state=present executable=pip2
   become: yes
 
 - name: Add APT Key
