@@ -4,6 +4,8 @@
 # Sponsored by Four Kitchens http://fourkitchens.com.
 # (c) 2014, Epic Games, Inc.
 #
+# Modifications (c) 2016, Ben Batschelet <ben.batschelet@gmail.com>
+#
 # This file was part of Ansible
 #
 # Ansible is free software: you can redistribute it and/or modify

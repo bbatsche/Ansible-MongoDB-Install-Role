@@ -41,7 +41,7 @@
   notify: Restart MongoDB
 
 - name: Lockdown MongoDB
-  mongodb_user:
+  bebat_mongodb_user:
     name:     "{{ db_admin }}"
     password: "{{ db_pass }}"
     database: admin
