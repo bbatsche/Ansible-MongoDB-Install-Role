@@ -6,12 +6,12 @@ language: generic
 
 env:
   matrix:
-    - ANSIBLE_VERSION="1.9" MONGODB_VERSION="3.0"
-    - ANSIBLE_VERSION="2.0" MONGODB_VERSION="3.0"
+    # - ANSIBLE_VERSION="1.9" MONGODB_VERSION="3.0"
+    # - ANSIBLE_VERSION="2.0" MONGODB_VERSION="3.0"
     - ANSIBLE_VERSION="2.1" MONGODB_VERSION="3.0"
-    - ANSIBLE_VERSION="1.9" MONGODB_VERSION="3.2"
-    - ANSIBLE_VERSION="2.0" MONGODB_VERSION="3.2"
-    - ANSIBLE_VERSION="2.1" MONGODB_VERSION="3.2"
+    # - ANSIBLE_VERSION="1.9" MONGODB_VERSION="3.2"
+    # - ANSIBLE_VERSION="2.0" MONGODB_VERSION="3.2"
+    # - ANSIBLE_VERSION="2.1" MONGODB_VERSION="3.2"
 
 before_install:
   - sudo apt-get update -qq
@@ -26,6 +26,10 @@ install:
   - sudo ansible-galaxy install bbatsche.Base
 
   - echo localhost ansible_connection=local ansible_ssh_user=$USER > inventory
+
+  -ls -Al $HOME
+  -ls -Al $HOME/.ansible
+  -ls -Al $HOME/.ansible/tmp
 
   - ansible-playbook -i inventory provision-playbook.yml --skip-tags timezone,sysctl,apt,ruby,node,bash,swap
 before_script:
