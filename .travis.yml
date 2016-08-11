@@ -27,9 +27,9 @@ install:
 
   - echo localhost ansible_connection=local ansible_ssh_user=$USER > inventory
 
-  -ls -Al $HOME
-  -ls -Al $HOME/.ansible
-  -ls -Al $HOME/.ansible/tmp
+  - ls -Al $HOME
+  - ls -Al $HOME/.ansible
+  - ls -Al $HOME/.ansible/tmp
 
   - ansible-playbook -i inventory provision-playbook.yml --skip-tags timezone,sysctl,apt,ruby,node,bash,swap
 before_script:
