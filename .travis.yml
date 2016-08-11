@@ -5,9 +5,6 @@ dist: trusty
 language: generic
 
 env:
-  global:
-    - ANSIBLE_LOCAL_TEMP=/tmp/ansible
-    - ANSIBLE_REMOTE_TEMP=/tmp/ansible
   matrix:
     - ANSIBLE_VERSION="1.9" MONGODB_VERSION="3.0"
     - ANSIBLE_VERSION="2.0" MONGODB_VERSION="3.0"
