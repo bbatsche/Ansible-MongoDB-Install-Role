@@ -6,20 +6,7 @@
 #
 # Modifications (c) 2016, Ben Batschelet <ben.batschelet@gmail.com>
 #
-# This file was part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 # This module has been modified to better support updating users in an idempotent manner.
 # In exchange, we are knowingly opening a second connection to the database and potentially
@@ -27,126 +14,14 @@
 # This is far from best practice, but does solve the need for being able to check
 # a new user's password.
 
-DOCUMENTATION = '''
----
-module: mongodb_user
-short_description: Adds or removes a user from a MongoDB database.
-description:
-    - Adds or removes a user from a MongoDB database.
-version_added: "1.1"
-options:
-    login_user:
-        description:
-            - The username used to authenticate with
-        required: false
-        default: null
-    login_password:
-        description:
-            - The password used to authenticate with
-        required: false
-        default: null
-    login_host:
-        description:
-            - The host running the database
-        required: false
-        default: localhost
-    login_port:
-        description:
-            - The port to connect to
-        required: false
-        default: 27017
-    login_database:
-        version_added: "2.0"
-        description:
-            - The database where login credentials are stored
-        required: false
-        default: null
-    replica_set:
-        version_added: "1.6"
-        description:
-            - Replica set to connect to (automatically connects to primary for writes)
-        required: false
-        default: null
-    database:
-        description:
-            - The name of the database to add/remove the user from
-        required: true
-    name:
-        description:
-            - The name of the user to add or remove
-        required: true
-        default: null
-        aliases: [ 'user' ]
-    password:
-        description:
-            - The password to use for the user
-        required: false
-        default: null
-    ssl:
-        version_added: "1.8"
-        description:
-            - Whether to use an SSL connection when connecting to the database
-        default: False
-    roles:
-        version_added: "1.3"
-        description:
-            - "The database user roles valid values could either be one or more of the following strings: 'read', 'readWrite', 'dbAdmin', 'userAdmin', 'clusterAdmin', 'readAnyDatabase', 'readWriteAnyDatabase', 'userAdminAnyDatabase', 'dbAdminAnyDatabase'"
-            - "Or the following dictionary '{ db: DATABASE_NAME, role: ROLE_NAME }'."
-            - "This param requires pymongo 2.5+. If it is a string, mongodb 2.4+ is also required. If it is a dictionary, mongo 2.6+  is required."
-        required: false
-        default: "readWrite"
-    state:
-        state:
-        description:
-            - The database user state
-        required: false
-        default: present
-        choices: [ "present", "absent" ]
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
 
-notes:
-    - Requires the pymongo Python package on the remote host, version 2.4.2+. This
-      can be installed using pip or the OS package manager. @see http://api.mongodb.org/python/current/installation.html
-requirements: [ "pymongo" ]
-author: "Elliott Foster (@elliotttf)"
-'''
-
-EXAMPLES = '''
-# Create 'burgers' database user with name 'bob' and password '12345'.
-- mongodb_user: database=burgers name=bob password=12345 state=present
-
-# Create a database user via SSL (MongoDB must be compiled with the SSL option and configured properly)
-- mongodb_user: database=burgers name=bob password=12345 state=present ssl=True
-
-# Delete 'burgers' database user with name 'bob'.
-- mongodb_user: database=burgers name=bob state=absent
-
-# Define more users with various specific roles (if not defined, no roles is assigned, and the user will be added via pre mongo 2.2 style)
-- mongodb_user: database=burgers name=ben password=12345 roles='read' state=present
-- mongodb_user: database=burgers name=jim password=12345 roles='readWrite,dbAdmin,userAdmin' state=present
-- mongodb_user: database=burgers name=joe password=12345 roles='readWriteAnyDatabase' state=present
-
-# add a user to database in a replica set, the primary server is automatically discovered and written to
-- mongodb_user: database=burgers name=bob replica_set=belcher password=12345 roles='readWriteAnyDatabase' state=present
-
-# add a user 'oplog_reader' with read only access to the 'local' database on the replica_set 'belcher'. This is usefull for oplog access (MONGO_OPLOG_URL).
-# please notice the credentials must be added to the 'admin' database because the 'local' database is not syncronized and can't receive user credentials
-# To login with such user, the connection string should be MONGO_OPLOG_URL="mongodb://oplog_reader:oplog_reader_password@server1,server2/local?authSource=admin"
-# This syntax requires mongodb 2.6+ and pymongo 2.5+
-- mongodb_user:
-    login_user: root
-    login_password: root_password
-    database: admin
-    user: oplog_reader
-    password: oplog_reader_password
-    state: present
-    replica_set: belcher
-    roles:
-     - { db: "local"  , role: "read" }
-
-'''
-
-import ConfigParser
+import os
+import ssl as ssl_lib
+import traceback
 from distutils.version import LooseVersion
+
 try:
     from pymongo.errors import ConnectionFailure
     from pymongo.errors import OperationFailure
@@ -162,10 +37,14 @@ except ImportError:
 else:
     pymongo_found = True
 
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.six import binary_type, text_type
+from ansible.module_utils.six.moves import configparser
+from ansible.module_utils._text import to_native
+
 # =========================================
 # MongoDB module specific support methods.
 #
-
 
 class MongoUser(object):
     def __init__(self, module):
@@ -202,7 +81,7 @@ class MongoUser(object):
             return MongoClient(self.login_host, self.login_port, ssl=self.ssl)
 
     def load_mongocnf(self):
-        config   = ConfigParser.RawConfigParser()
+        config   = configparser.RawConfigParser()
         mongocnf = os.path.expanduser('~/.mongodb.cnf')
 
         try:
@@ -210,21 +89,22 @@ class MongoUser(object):
 
             self.login_user     = config.get('client', 'user')
             self.login_password = config.get('client', 'pass')
-        except (ConfigParser.NoOptionError, IOError):
+        except (configparser.NoOptionError, IOError):
             return False
 
         return True
 
     def check_compatibility(self):
-        srv_info = self.client.server_info()
+        loose_srv_version = LooseVersion(self.client.server_info()['version'])
+        loose_driver_version = LooseVersion(PyMongoVersion)
 
-        if LooseVersion(srv_info['version']) >= LooseVersion('3.2') and LooseVersion(PyMongoVersion) <= LooseVersion('3.2'):
+        if loose_srv_version >= LooseVersion('3.2') and loose_driver_version <= LooseVersion('3.2'):
             self.module.fail_json(msg=' (Note: you must use pymongo 3.2+ with MongoDB >= 3.2)')
-        elif LooseVersion(srv_info['version']) >= LooseVersion('3.0') and LooseVersion(PyMongoVersion) <= LooseVersion('2.8'):
+        elif loose_srv_version >= LooseVersion('3.0') and loose_driver_version <= LooseVersion('2.8'):
             self.module.fail_json(msg=' (Note: you must use pymongo 2.8+ with MongoDB 3.0)')
-        elif LooseVersion(srv_info['version']) >= LooseVersion('2.6') and LooseVersion(PyMongoVersion) <= LooseVersion('2.7'):
+        elif loose_srv_version >= LooseVersion('2.6') and loose_driver_version <= LooseVersion('2.7'):
             self.module.fail_json(msg=' (Note: you must use pymongo 2.7+ with MongoDB 2.6)')
-        elif LooseVersion(PyMongoVersion) <= LooseVersion('2.5'):
+        elif loose_srv_version <= LooseVersion('2.5'):
             self.module.fail_json(msg=' (Note: you must be on mongodb 2.4+ and pymongo 2.5+ to use the roles param)')
 
     def localhost_exception(self):
@@ -247,8 +127,13 @@ class MongoUser(object):
 
     def find(self, user):
         for mongo_user in self.client["admin"].system.users.find():
-            if mongo_user['user'] == user and mongo_user['db'] == self.database:
-                return mongo_user
+            if mongo_user['user'] == user:
+                if 'db' not in mongo_user:
+                    return mongo_user
+
+                if mongo_user['db'] == self.database:
+                    return mongo_user
+
         return False
 
     def update(self, uinfo, user, password, roles):
@@ -268,7 +153,7 @@ class MongoUser(object):
                 # This is...so not good practice, but it's a way to get idempotence from our task
                 self.add(user, password, roles)
 
-    def user_remove(self, user):
+    def remove(self, user):
         if self.find(user):
             if self.module.check_mode:
                 self.module.exit_json(changed=True, user=user)
@@ -278,30 +163,15 @@ class MongoUser(object):
         else:
             self.module.exit_json(changed=False, user=user)
 
-# We must be aware of users which can read the oplog on a replicaset
-# Such users must have access to the local DB, but since this DB does not store users credentials
-# and is not synchronized among replica sets, the user must be stored on the admin db
-# Therefore their structure is the following :
-# {
-#     "_id" : "admin.oplog_reader",
-#     "user" : "oplog_reader",
-#     "db" : "admin",                    # <-- admin DB
-#     "roles" : [
-#         {
-#             "role" : "read",
-#             "db" : "local"             # <-- local DB
-#         }
-#     ]
-# }
-def roles_as_dict(roles, db_name):
-    output = list()
-    for role in roles:
-        if isinstance(role, basestring):
-            role = { "role": role, "db": db_name }
-        output.append(role)
-    return output
-
 def roles_changed(uinfo, roles, db_name):
+    def roles_as_dict(roles, db_name):
+        output = list()
+        for role in roles:
+            if isinstance(role, basestring):
+                role = { "role": role, "db": db_name }
+            output.append(role)
+        return output
+
     roles = roles_as_dict(roles, db_name)
     uinfo_roles = uinfo.get('roles', [])
 
@@ -315,19 +185,20 @@ def roles_changed(uinfo, roles, db_name):
 
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
+        argument_spec=dict(
             login_user=dict(default=None),
-            login_password=dict(default=None),
+            login_password=dict(default=None, no_log=True),
             login_host=dict(default='localhost'),
             login_port=dict(default='27017'),
             login_database=dict(default=None),
             replica_set=dict(default=None),
             database=dict(required=True, aliases=['db']),
             name=dict(required=True, aliases=['user']),
-            password=dict(aliases=['pass']),
+            password=dict(aliases=['pass'], no_log=True),
             ssl=dict(default=False, type='bool'),
             roles=dict(default=None, type='list'),
             state=dict(default='present', choices=['absent', 'present']),
+            ssl_cert_reqs=dict(default='CERT_REQUIRED', choices=['CERT_NONE', 'CERT_OPTIONAL', 'CERT_REQUIRED']),
         ),
         supports_check_mode=True
     )
@@ -368,6 +239,5 @@ def main():
 
     module.exit_json(changed=True, user=user)
 
-# import module snippets
-from ansible.module_utils.basic import *
-main()
+if __name__ == '__main__':
+    main()

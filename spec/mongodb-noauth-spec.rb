@@ -1,9 +1,8 @@
-require_relative "lib/ansible_helper"
 require_relative "bootstrap"
 
 RSpec.configure do |config|
   config.before :suite do
-    AnsibleHelper.instance.playbook "playbooks/mongodb-install.yml", mongodb_authorization: "disabled"
+    AnsibleHelper.playbook "playbooks/mongodb-install.yml", ENV["TARGET_HOST"], mongodb_authorization: "disabled"
   end
 end
 
