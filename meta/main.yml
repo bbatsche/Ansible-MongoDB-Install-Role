@@ -3,7 +3,7 @@ galaxy_info:
   author: Ben Batschelet
   description: Role to install and lock down MongoDB server
   license: MIT
-  min_ansible_version: 2.1
+  min_ansible_version: 2.2
   platforms:
   - name: Ubuntu
     versions:

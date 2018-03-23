@@ -48,10 +48,12 @@
 - name: Enable Service
   systemd: name=mongod enabled=yes daemon_reload=yes
   become: yes
-  when: ansible_distribution_release != "trusty"
+  when:
+    - ansible_distribution_release != "trusty"
+    - ansible_connection | default("smart") != "docker"
 
 - name: Start Service
-  service: name=mongod state=started
+  service: name=mongod state=started enabled=yes
   become: yes
 
 - name: Lockdown
