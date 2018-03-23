@@ -27,20 +27,34 @@
   become: yes
   register: mongodb_install
 
+- name: Install Sysfsutils
+  apt: name=sysfsutils state=present
+  become: yes
+
 - name: Disable Transparent Huge Pages
   lineinfile:
-    dest: /etc/init/mongod.conf
+    dest: /etc/sysfs.conf
     line: "{{ item }}"
-    insertafter: pre-start script
     state: present
   with_items:
-    - "  if test -f /sys/kernel/mm/transparent_hugepage/khugepaged/defrag; then echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag; fi"
-    - "  if test -f /sys/kernel/mm/transparent_hugepage/defrag; then echo never > /sys/kernel/mm/transparent_hugepage/defrag; fi"
-    - "  if test -f /sys/kernel/mm/transparent_hugepage/enabled; then echo never > /sys/kernel/mm/transparent_hugepage/enabled; fi"
+    - kernel/mm/transparent_hugepage/khugepaged/defrag = 0
+    - kernel/mm/transparent_hugepage/defrag = never
+    - kernel/mm/transparent_hugepage/enabled = never
   become: yes
-  notify: Restart MongoDB
+  notify:
+    - Restart Sysfsutils
+    - Restart MongoDB
 
-- name: Lockdown MongoDB
+- name: Enable Service
+  systemd: name=mongod enabled=yes daemon_reload=yes
+  become: yes
+  when: ansible_distribution_release != "trusty"
+
+- name: Start Service
+  service: name=mongod state=started
+  become: yes
+
+- name: Lockdown
   bebat_mongodb_user:
     name:     "{{ db_admin }}"
     password: "{{ db_pass }}"

@@ -6,9 +6,13 @@ RSpec.configure do |config|
   end
 end
 
+context 'MongoDB' do
+  include_examples "mongodb", "3.6"
+end
+
 describe command('mongo admin --eval "db.system.users.count()"') do
   it "should allow a user to connect without authentication" do
-    expect(subject.stdout).to match /connecting to: admin/
+    expect(subject.stdout).to match /^connecting to:.+admin^/
     expect(subject.stdout).to match /^\d+$/
 
     expect(subject.exit_status).to eq 0
